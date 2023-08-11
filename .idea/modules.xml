@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/context/core/hytssk.ind.spring.base.context.core.main.iml" filepath="$PROJECT_DIR$/.idea/modules/context/core/hytssk.ind.spring.base.context.core.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/infra/hytssk.ind.spring.base.infra.main.iml" filepath="$PROJECT_DIR$/.idea/modules/infra/hytssk.ind.spring.base.infra.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/infra/hytssk.ind.spring.base.infra.test.iml" filepath="$PROJECT_DIR$/.idea/modules/infra/hytssk.ind.spring.base.infra.test.iml" />
+    </modules>
+  </component>
+</project>
