@@ -1,0 +1,7 @@
+plugins:
+  envoy_ext_authz_grpc:
+    addr: :4000
+    path: http/api/authz/allow
+
+decision_logs:
+  console: true
