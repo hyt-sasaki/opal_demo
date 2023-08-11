@@ -5,14 +5,15 @@ import hytssk.ind.spring.base.context.core.message.MessageEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 
 @Controller
 class MessageController(
     private val messageRepository: IMessageRepository
 ) {
-    @GetMapping("/message")
-    fun getMessage(): ResponseEntity<MessageDto> {
-        return messageRepository.findOneById("1").let {
+    @GetMapping("/messages/{id}")
+    fun getMessages(@PathVariable id: String): ResponseEntity<MessageDto> {
+        return messageRepository.findOneById(id).let {
             ResponseEntity.ok(it.toDto())
         }
     }

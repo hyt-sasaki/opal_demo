@@ -15,7 +15,7 @@ class MessageControllerTest @Autowired constructor(
 ) {
     @Test
     fun test() {
-        val result = mockMvc.perform(get("/message"))
+        val result = mockMvc.perform(get("/messages/1"))
             .andReturn()
         assertContains(result.response.contentAsString, "hello")
     }
