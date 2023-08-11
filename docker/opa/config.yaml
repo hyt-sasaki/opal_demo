@@ -5,3 +5,10 @@ plugins:
 
 decision_logs:
   console: true
+
+distributed_tracing:
+  type: grpc
+  address: otel_collector:4317
+  service_name: opa
+  sample_percentage: 50
+  encryption: "off"

@@ -23,7 +23,7 @@ services:
       - OPAL_POLICY_REPO_MAIN_BRANCH=main
       - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://host.docker.internal:8081/auth/data","topics":["policy_data"],"dst_path":"/custom_info"}]}}
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
-      - OPAL_POLICY_REPO_POLLING_INTERVAL=30
+      - OPAL_POLICY_REPO_POLLING_INTERVAL=300
     ports:
       - "7002:7002"
   opal_client:
@@ -51,6 +51,19 @@ services:
     # this command is not necessary when deploying OPAL for real, it is simply a trick for dev environments
     # to make sure that opal-server is already up before starting the client.
     command: sh -c "exec ./wait-for.sh opal_server:7002 --timeout=20 -- ./start.sh"
-
+  jaeger:
+    image: "jaegertracing/all-in-one:latest"
+    ports:
+      - "16686:16686"
+      - "14268"
+      - "14250"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+  otel_collector:
+    build:
+      context: .
+      dockerfile: ./docker/otel-collector/Dockerfile
+    restart: always
+    command: [ "--config=/etc/otel-collector-config.yaml", "" ]
 volumes:
   opa_backup:
