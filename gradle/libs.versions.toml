@@ -9,6 +9,7 @@ kotlin = {module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "k
 kotlin-test-junit5 = {module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin"}
 kotlin-spring = {module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin"}
 detekt-plugin = {module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt"}
+detekt-formatting = {module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt"}
 spring-boot-plugin = {module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot"}
 spring-boot-bom = {module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot"}
 spring-boot-web = {module = "org.springframework.boot:spring-boot-starter-web"}
