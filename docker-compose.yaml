@@ -8,3 +8,9 @@ services:
     ports:
       - "3000:3000"
       - "9901:9901"
+  opa:
+    build:
+      context: .
+      dockerfile: ./docker/opa/Dockerfile
+    ports:
+      - "4000:4000"
