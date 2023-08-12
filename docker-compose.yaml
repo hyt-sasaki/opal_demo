@@ -1,13 +1,21 @@
 version: "3.8"
 
 services:
-  envoy:
+  front_envoy:
     build:
       context: .
-      dockerfile: ./docker/envoy/Dockerfile
+      dockerfile: docker/front-envoy/Dockerfile
     ports:
       - "3000:3000"
       - "9901:9901"
+  auth_data_envoy:
+    build:
+      context: .
+      dockerfile: docker/auth-data-envoy/Dockerfile
+    hostname: auth.data.envoy
+    ports:
+      - "3001:3001"
+      - "9902:9902"
   opa:
     build:
       context: .
@@ -21,11 +29,13 @@ services:
       - UVICORN_NUM_WORKERS=1
       - OPAL_POLICY_REPO_URL=https://github.com/hyt-sasaki/opal_policies.git
       - OPAL_POLICY_REPO_MAIN_BRANCH=main
-      - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://host.docker.internal:8081/auth/data","topics":["policy_data"],"dst_path":"/custom_info"}]}}
+      - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://auth.data.envoy:3001/auth/data","topics":["policy_data"],"dst_path":"/custom_info"}]}}
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
       - OPAL_POLICY_REPO_POLLING_INTERVAL=300
     ports:
       - "7002:7002"
+    depends_on:
+      - auth_data_envoy
   opal_client:
     build:
       context: .
