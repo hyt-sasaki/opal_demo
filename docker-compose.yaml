@@ -65,5 +65,7 @@ services:
       dockerfile: ./docker/otel-collector/Dockerfile
     restart: always
     command: [ "--config=/etc/otel-collector-config.yaml", "" ]
+    ports:
+      - "4317:4317"
 volumes:
   opa_backup:
