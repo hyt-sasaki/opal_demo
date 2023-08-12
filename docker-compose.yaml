@@ -29,7 +29,7 @@ services:
       - UVICORN_NUM_WORKERS=1
       - OPAL_POLICY_REPO_URL=https://github.com/hyt-sasaki/opal_policies.git
       - OPAL_POLICY_REPO_MAIN_BRANCH=main
-      - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://auth.data.envoy:3001/auth/data","topics":["policy_data"],"dst_path":"/custom_info"}]}}
+      - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://auth.data.envoy:3001/auth/data","topics":["policy_data"],"dst_path":"/custom_info", "periodic_update_interval":300}]}}
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
       - OPAL_POLICY_REPO_POLLING_INTERVAL=300
     ports:
@@ -52,10 +52,6 @@ services:
     ports:
       # exposes opal client on the host machine, you can access the client at: http://localhost:7766
       - "7766:7000"
-      # exposes the OPA agent (being run by OPAL) on the host machine
-      # you can access the OPA api that you know and love at: http://localhost:8181
-      # OPA api docs are at: https://www.openpolicyagent.org/docs/latest/rest-api/
-      - "8181:8181"
     depends_on:
       - opal_server
     # this command is not necessary when deploying OPAL for real, it is simply a trick for dev environments
