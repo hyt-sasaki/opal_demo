@@ -4,9 +4,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class App
+class AuthDataApp
 
 @Suppress("SpreadOperator")
 fun main(args: Array<String>) {
-    runApplication<App>(*args)
+    runApplication<AuthDataApp>(*args)
 }

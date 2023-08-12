@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(libs.spring.boot.web)
+    implementation(libs.spring.boot.webflux)
     implementation(project(":context:core"))
     runtimeOnly(project(":infra"))
 }
