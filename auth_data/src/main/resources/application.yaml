@@ -2,4 +2,5 @@ server:
   port: 8081
 logging:
   level:
+    root: DEBUG
     org.springframework.web: ${LOG_LEVEL_SPRING:DEBUG}

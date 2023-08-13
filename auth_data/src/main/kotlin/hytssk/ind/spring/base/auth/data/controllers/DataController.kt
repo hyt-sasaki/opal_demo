@@ -3,6 +3,7 @@ package hytssk.ind.spring.base.auth.data.controllers
 import hytssk.ind.spring.base.auth.data.trace.SpanWithContextGenerator
 import io.opentelemetry.api.OpenTelemetry
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,8 +15,11 @@ import org.springframework.web.bind.annotation.RequestParam
 class DataController(
     private val spanWithContextGenerator: SpanWithContextGenerator,
     openTelemetry: OpenTelemetry,
+    restTemplateBuilder: RestTemplateBuilder,
 ) {
     private val tracer = openTelemetry.getTracer(this::class.simpleName ?: "auth-data")
+    private val restTemplate = restTemplateBuilder.build()
+
     var data = arrayListOf(
         DataDto("1", true),
         DataDto("2", false),
@@ -41,12 +45,41 @@ class DataController(
             id = id,
             flag = flag,
         )
+        trigger()
         span.end()
         return ResponseEntity.noContent().build()
+    }
+
+    private fun trigger() {
+        restTemplate.postForLocation(
+            "http://localhost:7002/data/config",
+            DataUpdate(
+                entries = listOf(
+                    DataUpdate.Entry(
+                        url = "http://auth.data.envoy:3001/auth/data",
+                        topics = listOf("policy_data"),
+                        dst_path = "/custom_info",
+                    )
+                ),
+                reason = "data is updated by user"
+            ),
+        )
     }
 
     data class DataDto(
         val id: String,
         val flag: Boolean,
     )
+
+    @Suppress("ConstructorParameterNaming")
+    private data class DataUpdate(
+        val entries: List<Entry>,
+        val reason: String,
+    ) {
+        data class Entry(
+            val url: String,
+            val topics: List<String>,
+            val dst_path: String,
+        )
+    }
 }
