@@ -1,6 +1,8 @@
 package hytssk.ind.spring.base.auth.data.controllers
 
 import hytssk.ind.spring.base.auth.data.trace.SpanWithContextGenerator
+import hytssk.ind.spring.base.context.data.DataEntity
+import hytssk.ind.spring.base.context.data.IDataRepository
 import io.opentelemetry.api.OpenTelemetry
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class DataController(
+    private val dataRepository: IDataRepository,
     private val spanWithContextGenerator: SpanWithContextGenerator,
     openTelemetry: OpenTelemetry,
     restTemplateBuilder: RestTemplateBuilder,
@@ -20,16 +23,14 @@ class DataController(
     private val tracer = openTelemetry.getTracer(this::class.simpleName ?: "auth-data")
     private val restTemplate = restTemplateBuilder.build()
 
-    var data = arrayListOf(
-        DataDto("1", true),
-        DataDto("2", false),
-        DataDto("3", true),
-    )
-
     @GetMapping("/auth/data")
     fun getData(request: HttpServletRequest): ResponseEntity<List<DataDto>> {
         val span = spanWithContextGenerator.generate(request, tracer, "getData")
-        val result = ResponseEntity.ok(data.toList())
+        val result = dataRepository.findAll()
+            .map { it.toDto() }
+            .let {
+                ResponseEntity.ok(it)
+            }
         span.end()
         return result
     }
@@ -41,10 +42,11 @@ class DataController(
         request: HttpServletRequest
     ): ResponseEntity<Unit> {
         val span = spanWithContextGenerator.generate(request, tracer, "putData")
-        data[data.indexOfFirst { it.id == id }] = DataDto(
+        val entity = DataEntity(
             id = id,
             flag = flag,
         )
+        dataRepository.save(entity)
         trigger()
         span.end()
         return ResponseEntity.noContent().build()
@@ -70,6 +72,13 @@ class DataController(
         val id: String,
         val flag: Boolean,
     )
+
+    private fun DataEntity.toDto(): DataDto {
+        return DataDto(
+            id = id,
+            flag = flag,
+        )
+    }
 
     @Suppress("ConstructorParameterNaming")
     private data class DataUpdate(

@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestParam
 import java.util.Collections
 
 @Controller
@@ -21,15 +23,36 @@ class MessageController(
     private val tracer = openTelemetry.getTracer(this::class.simpleName ?: "MessageController")
 
     @GetMapping("/messages/{id}")
-    fun getMessages(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<MessageDto> {
+    fun getMessage(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<MessageDto> {
         val span = spanGenerator.generate(request, tracer, "getMessages")
         span.setAttribute("message_id", id)
-        val result = messageRepository.findOneById(id).let {
+        val result = messageRepository.findOneById(id)?.let {
             span.setAttribute("message_body", it.body)
             ResponseEntity.ok(it.toDto())
         }
+        if (result == null) {
+            span.setAttribute("error", "not found: id = $id")
+            throw RuntimeException("Not Found")
+        }
         span.end()
         return result
+    }
+
+    @PutMapping("/messages/{id}")
+    fun putMessage(
+        @PathVariable id: String,
+        @RequestParam("body") body: String,
+        request: HttpServletRequest
+    ): ResponseEntity<MessageDto> {
+        val span = spanGenerator.generate(request, tracer, "putMessage")
+        val result = messageRepository.save(
+            MessageEntity(
+                id = id,
+                body = body,
+            )
+        )
+        span.end()
+        return ResponseEntity.ok(result.toDto())
     }
 
     private fun MessageEntity.toDto(): MessageDto {
