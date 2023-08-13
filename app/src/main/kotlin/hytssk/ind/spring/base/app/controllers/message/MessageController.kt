@@ -2,10 +2,12 @@ package hytssk.ind.spring.base.app.controllers.message
 
 import hytssk.ind.spring.base.app.trace.SpanWithContextGenerator
 import hytssk.ind.spring.base.context.core.message.IMessageRepository
+import hytssk.ind.spring.base.context.core.message.MessageDomainService
 import hytssk.ind.spring.base.context.core.message.MessageEntity
 import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.context.propagation.TextMapGetter
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,10 +19,13 @@ import java.util.Collections
 @Controller
 class MessageController(
     private val messageRepository: IMessageRepository,
+    private val messageDomainService: MessageDomainService,
     private val spanGenerator: SpanWithContextGenerator,
+    restTemplateBuilder: RestTemplateBuilder,
     openTelemetry: OpenTelemetry,
 ) {
     private val tracer = openTelemetry.getTracer(this::class.simpleName ?: "MessageController")
+    private val restTemplate = restTemplateBuilder.build()
 
     @GetMapping("/messages/{id}")
     fun getMessage(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<MessageDto> {
@@ -43,16 +48,28 @@ class MessageController(
         @PathVariable id: String,
         @RequestParam("body") body: String,
         request: HttpServletRequest
-    ): ResponseEntity<MessageDto> {
+    ): ResponseEntity<Unit> {
         val span = spanGenerator.generate(request, tracer, "putMessage")
-        val result = messageRepository.save(
-            MessageEntity(
-                id = id,
-                body = body,
-            )
-        )
+        messageDomainService.register(id, body)
+        trigger()
         span.end()
-        return ResponseEntity.ok(result.toDto())
+        return ResponseEntity.noContent().build()
+    }
+
+    private fun trigger() {
+        restTemplate.postForLocation(
+            "http://localhost:7002/data/config",
+            DataUpdate(
+                entries = listOf(
+                    DataUpdate.Entry(
+                        url = "http://auth.data.envoy:3001/auth/data",
+                        topics = listOf("policy_data"),
+                        dst_path = "/custom_info",
+                    )
+                ),
+                reason = "data is updated by user"
+            ),
+        )
     }
 
     private fun MessageEntity.toDto(): MessageDto {
@@ -63,6 +80,18 @@ class MessageController(
         val id: String,
         val body: String,
     )
+
+    @Suppress("ConstructorParameterNaming")
+    private data class DataUpdate(
+        val entries: List<Entry>,
+        val reason: String,
+    ) {
+        data class Entry(
+            val url: String,
+            val topics: List<String>,
+            val dst_path: String,
+        )
+    }
 }
 
 class HttpServletRequestTextMapGetter : TextMapGetter<HttpServletRequest> {

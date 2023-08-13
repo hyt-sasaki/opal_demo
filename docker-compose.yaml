@@ -32,7 +32,7 @@ services:
       - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://auth.data.envoy:3001/auth/data","topics":["policy_data"],"dst_path":"/custom_info", "periodic_update_interval":3000}]}}
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
       - OPAL_POLICY_REPO_POLLING_INTERVAL=300
-      - OPAL_LOG_LEVEL=DEBUG
+      - OPAL_LOG_LEVEL=INFO
     ports:
       - "7002:7002"
     depends_on:
@@ -47,7 +47,7 @@ services:
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
       - OPAL_INLINE_OPA_LOG_FORMAT=http
       - OPAL_OFFLINE_MODE_ENABLED=true
-      - OPAL_LOG_LEVEL=DEBUG
+      - OPAL_LOG_LEVEL=INFO
     volumes:
       - opa_backup:/opal/backup:rw
 

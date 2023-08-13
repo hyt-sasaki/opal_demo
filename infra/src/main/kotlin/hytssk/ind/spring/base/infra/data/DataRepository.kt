@@ -6,11 +6,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class DataRepository : IDataRepository {
-    var data = arrayListOf(
-        DataEntity("1", true),
-        DataEntity("2", false),
-        DataEntity("3", true),
-    )
+    var data = arrayListOf<DataEntity>()
 
     override fun findAll(): List<DataEntity> {
         return data
