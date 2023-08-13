@@ -16,6 +16,14 @@ services:
     ports:
       - "3001:3001"
       - "9902:9902"
+  opal_server_proxy:
+    build:
+      context: .
+      dockerfile: docker/opal-server-proxy/Dockerfile
+    hostname: opal.server.proxy
+    ports:
+      - "3002:3002"
+      - "9903:9903"
   opa:
     build:
       context: .
@@ -33,6 +41,7 @@ services:
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
       - OPAL_POLICY_REPO_POLLING_INTERVAL=300
       - OPAL_LOG_LEVEL=INFO
+    hostname: opal.server
     ports:
       - "7002:7002"
     depends_on:
@@ -42,7 +51,7 @@ services:
       context: .
       dockerfile: ./docker/opal-client/Dockerfile
     environment:
-      - OPAL_SERVER_URL=http://opal_server:7002
+      - OPAL_SERVER_URL=http://opal.server:7002
       - OPAL_POLICY_STORE_URL=http://opa:8181
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
       - OPAL_INLINE_OPA_LOG_FORMAT=http
@@ -58,7 +67,7 @@ services:
       - opal_server
     # this command is not necessary when deploying OPAL for real, it is simply a trick for dev environments
     # to make sure that opal-server is already up before starting the client.
-    command: sh -c "exec ./wait-for.sh opal_server:7002 --timeout=20 -- ./start.sh"
+    command: sh -c "exec ./wait-for.sh opal.server:7002 --timeout=20 -- ./start.sh"
   jaeger:
     image: "jaegertracing/all-in-one:latest"
     ports:

@@ -58,7 +58,7 @@ class MessageController(
 
     private fun trigger() {
         restTemplate.postForLocation(
-            "http://localhost:7002/data/config",
+            "http://localhost:3002/data/config",
             DataUpdate(
                 entries = listOf(
                     DataUpdate.Entry(
