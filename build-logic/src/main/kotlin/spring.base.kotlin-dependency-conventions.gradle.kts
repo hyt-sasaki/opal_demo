@@ -16,7 +16,4 @@ dependencies {
     implementation(platform(libs.otel.bom))
     implementation(libs.otel.api)
     implementation(libs.otel.kotlin)
-    implementation(libs.otel.sdk)
-    implementation(libs.otel.exporter)
-    implementation(libs.otel.semconv)
 }

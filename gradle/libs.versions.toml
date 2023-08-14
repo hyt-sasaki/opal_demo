@@ -5,6 +5,7 @@ spring-boot = "3.1.2"
 apache-common = "1.10.0"
 otel = "1.28.0"
 otel-alpha = "1.28.0-alpha"
+otel-agent = "1.21.0"
 
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -25,3 +26,5 @@ otel-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin" }
 otel-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
 otel-exporter = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
 otel-semconv = { module = "io.opentelemetry:opentelemetry-semconv", version.ref = "otel-alpha" }
+shadow-plugin = { module = "com.github.johnrengelman.shadow:com.github.johnrengelman.shadow.gradle.plugin", version = "8.1.1" }
+download-plugin = { module = "de.undercouch.download:de.undercouch.download.gradle.plugin", version = "5.4.0" }

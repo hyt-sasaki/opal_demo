@@ -15,5 +15,7 @@ dependencies {
     implementation(libs.kotlin.spring)
     implementation(libs.detekt.plugin)
     implementation(libs.spring.boot.plugin)
+    implementation(libs.shadow.plugin)
+    implementation(libs.download.plugin)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

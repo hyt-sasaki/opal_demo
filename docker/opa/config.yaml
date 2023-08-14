@@ -10,5 +10,5 @@ distributed_tracing:
   type: grpc
   address: otel_collector:4317
   service_name: opa
-  sample_percentage: 50
+  sample_percentage: 100
   encryption: "off"
