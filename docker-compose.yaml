@@ -21,7 +21,7 @@ services:
         # fluentd-address: 10.245.249.101:24224
         fluentd-address: fluentbit
         fluentd-async-connect: "true"
-        tag: "front-envoy"
+        tag: "db"
   front_envoy:
     build:
       context: .
@@ -76,7 +76,7 @@ services:
         # fluentd-address: 10.245.249.101:24224
         fluentd-address: fluentbit
         fluentd-async-connect: "true"
-        tag: "opal-server"
+        tag: "opal-server-proxy"
     depends_on:
       - fluentbit
   opa:
@@ -197,6 +197,56 @@ services:
     networks:
       fixed_compose_network:
         ipv4_address: 10.254.249.102
+  loki:
+    image: grafana/loki:latest
+    expose:
+      - "3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      fixed_compose_network:
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - "GF_AUTH_DISABLE_LOGIN_FORM=true"
+      - "GF_AUTH_ANONYMOUS_ENABLED=true"
+      - "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin"
+      - "GF_SERVER_HTTP_PORT=9100"
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+          - name: Loki
+            type: loki
+            access: proxy
+            url: http://loki:3100
+          - name: Prometheus
+            type: prometheus
+            access: proxy
+            url: http://prometheus:9090
+            jsonData:
+              httpMethod: POST
+              manageAlerts: true
+              prometheusType: Prometheus
+              prometheusVersion: 2.44.0
+              cacheLevel: 'High'
+              disableRecordingRules: false
+              incrementalQueryOverlapWindow: 10m
+          - name: Jaeger
+            type: jaeger
+            access: proxy
+            url: http://jaeger:16686
+        EOF
+        /run.sh
+    ports:
+      - "9100:9100"
+    depends_on:
+      - loki
+    networks:
+      fixed_compose_network:
 volumes:
   opa_backup:
   data_volume:

@@ -42,6 +42,8 @@ exporters:
     endpoint: jaeger:14250
     tls:
       insecure: true
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
 
 processors:
   batch:
@@ -55,7 +57,7 @@ service:
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging ]
+      exporters: [ logging, loki ]
     metrics:
       receivers: [ otlp, prometheus ]
       processors: [ batch ]
