@@ -24,7 +24,9 @@
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/context" />
             <option value="$PROJECT_DIR$/context/core" />
+            <option value="$PROJECT_DIR$/flyway" />
             <option value="$PROJECT_DIR$/infra" />
+            <option value="$PROJECT_DIR$/jooq" />
           </set>
         </option>
       </GradleProjectSettings>

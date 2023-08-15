@@ -17,5 +17,8 @@ dependencies {
     implementation(libs.spring.boot.plugin)
     implementation(libs.shadow.plugin)
     implementation(libs.download.plugin)
+    runtimeOnly(libs.mysql)
+    implementation(libs.jooq.codegen)
+    implementation(libs.jooq)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

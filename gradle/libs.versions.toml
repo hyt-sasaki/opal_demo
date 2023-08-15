@@ -6,6 +6,12 @@ apache-common = "1.10.0"
 otel = "1.28.0"
 otel-alpha = "1.28.0-alpha"
 otel-agent = "1.21.0"
+flyway = "9.21.1"
+mysql = "8.0.31"
+jooq = "3.18.6"
+
+[plugins]
+flyway = { id = "org.flywaydb.flyway", version.ref = "flyway" }
 
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -19,6 +25,7 @@ spring-boot-web = { module = "org.springframework.boot:spring-boot-starter-web" 
 spring-boot-webflux = { module = "org.springframework:spring-webflux" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-jooq = { module = "org.springframework.boot:spring-boot-starter-jooq" }
 apache-common-text = { module = "org.apache.commons:commons-text", version.ref = "apache-common" }
 otel-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "otel" }
 otel-api = { module = "io.opentelemetry:opentelemetry-api" }
@@ -28,3 +35,8 @@ otel-exporter = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
 otel-semconv = { module = "io.opentelemetry:opentelemetry-semconv", version.ref = "otel-alpha" }
 shadow-plugin = { module = "com.github.johnrengelman.shadow:com.github.johnrengelman.shadow.gradle.plugin", version = "8.1.1" }
 download-plugin = { module = "de.undercouch.download:de.undercouch.download.gradle.plugin", version = "5.4.0" }
+mysql = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql", version.ref = "flyway" }
+yaml = { module = "org.yaml:snakeyaml", version = "2.1" }
+jooq-codegen = { module = "org.jooq:jooq-codegen", version.ref = "jooq" }
+jooq = { module = "org.jooq:jooq", version.ref = "jooq" }

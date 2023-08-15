@@ -1,6 +1,27 @@
 version: "3.8"
 
 services:
+  db:
+    image: mysql:8.0.31
+    environment:
+      MYSQL_DATABASE: sample
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+      TZ: 'Asia/Tokyo'
+    ports:
+      - "3306:3306"
+    networks:
+      fixed_compose_network:
+    volumes:
+      - data_volume:/var/lib/mysql
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "front-envoy"
   front_envoy:
     build:
       context: .
@@ -8,6 +29,18 @@ services:
     ports:
       - "3000:3000"
       - "9901:9901"
+    hostname: front.envoy
+    networks:
+      fixed_compose_network:
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "front-envoy"
+    depends_on:
+      - fluentbit
   auth_data_envoy:
     build:
       context: .
@@ -16,6 +49,17 @@ services:
     ports:
       - "3001:3001"
       - "9902:9902"
+    networks:
+      fixed_compose_network:
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "auth-data-envoy"
+    depends_on:
+      - fluentbit
   opal_server_proxy:
     build:
       context: .
@@ -24,6 +68,17 @@ services:
     ports:
       - "3002:3002"
       - "9903:9903"
+    networks:
+      fixed_compose_network:
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "opal-server"
+    depends_on:
+      - fluentbit
   opa:
     build:
       context: .
@@ -31,6 +86,17 @@ services:
     ports:
       - "4000:4000"
       - "8182:8181"
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "opa"
+    depends_on:
+      - fluentbit
+    networks:
+      fixed_compose_network:
   opal_server:
     image: permitio/opal-server:latest
     environment:
@@ -46,6 +112,16 @@ services:
       - "7002:7002"
     depends_on:
       - auth_data_envoy
+      - fluentbit
+    networks:
+      fixed_compose_network:
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "opal_server"
   opal_client:
     build:
       context: .
@@ -59,12 +135,21 @@ services:
       - OPAL_LOG_LEVEL=INFO
     volumes:
       - opa_backup:/opal/backup:rw
-
+    networks:
+      fixed_compose_network:
     ports:
       # exposes opal client on the host machine, you can access the client at: http://localhost:7766
       - "7766:7000"
+    logging:
+      driver: fluentd
+      options:
+        # fluentd-address: 10.245.249.101:24224
+        fluentd-address: fluentbit
+        fluentd-async-connect: "true"
+        tag: "opal_client"
     depends_on:
       - opal_server
+      - fluentbit
     # this command is not necessary when deploying OPAL for real, it is simply a trick for dev environments
     # to make sure that opal-server is already up before starting the client.
     command: sh -c "exec ./wait-for.sh opal.server:7002 --timeout=20 -- ./start.sh"
@@ -76,13 +161,49 @@ services:
       - "14250"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      fixed_compose_network:
   otel_collector:
     build:
       context: .
       dockerfile: ./docker/otel-collector/Dockerfile
     restart: always
+    hostname: otel.collector
     command: [ "--config=/etc/otel-collector-config.yaml", "" ]
     ports:
       - "4317:4317"
+    networks:
+      fixed_compose_network:
+        ipv4_address: 10.254.249.100
+
+  fluentbit:
+    build:
+      context: .
+      dockerfile: ./docker/fluentbit/Dockerfile
+    hostname: fluentbit
+    restart: always
+    ports:
+      - "24224:24224"
+    networks:
+      fixed_compose_network:
+        ipv4_address: 10.254.249.101
+  prometheus:
+    build:
+      context: .
+      dockerfile: ./docker/prometheus/Dockerfile
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      fixed_compose_network:
+        ipv4_address: 10.254.249.102
 volumes:
   opa_backup:
+  data_volume:
+
+networks:
+  fixed_compose_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.254.249.0/24

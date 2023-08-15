@@ -8,10 +8,36 @@ receivers:
     protocols:
       grpc:
       http:
+        endpoint:
+          0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: opa-collector
+          scrape_interval: 30s
+          metrics_path: "/metrics"
+          static_configs:
+            - targets: [ opa:8181 ]
+        - job_name: front-envoy-collector
+          scrape_interval: 30s
+          metrics_path: "/stats/prometheus"
+          static_configs:
+            - targets: [ front.envoy:9901 ]
+        - job_name: "auth-data-envoy-collector"
+          scrape_interval: 30s
+          metrics_path: "/stats/prometheus"
+          static_configs:
+            - targets: [ auth.data.envoy:9902 ]
+        - job_name: opal-server-envoy-collector
+          scrape_interval: 30s
+          metrics_path: "/stats/prometheus"
+          static_configs:
+            - targets: [ opal.server.proxy:9903 ]
 
 exporters:
   logging:
-    loglevel: debug
+  prometheus:
+    endpoint: 0.0.0.0:4319
   jaeger:
     endpoint: jaeger:14250
     tls:
@@ -26,8 +52,12 @@ service:
       receivers: [ otlp ]
       processors: [ batch ]
       exporters: [ logging, jaeger ]
-    metrics:
+    logs:
       receivers: [ otlp ]
       processors: [ batch ]
       exporters: [ logging ]
+    metrics:
+      receivers: [ otlp, prometheus ]
+      processors: [ batch ]
+      exporters: [ logging, prometheus ]
   extensions: [ zpages, health_check ]

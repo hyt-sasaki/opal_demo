@@ -7,4 +7,4 @@ plugins {
 }
 
 rootProject.name = "hytssk.ind.spring.base"
-include("app", "infra", "context:core", "auth_data")
+include("app", "infra", "context:core", "auth_data", "flyway", "jooq")

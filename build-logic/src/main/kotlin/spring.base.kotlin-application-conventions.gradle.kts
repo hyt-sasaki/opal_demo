@@ -17,6 +17,7 @@ tasks.register<Download>("downloadAgent") {
         "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v$agentVersion/opentelemetry-javaagent.jar"
     )
     dest(agentPath)
+    overwrite(false)
 }
 
 tasks.getByName<JavaExec>("bootRun") {
