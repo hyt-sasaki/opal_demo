@@ -153,14 +153,17 @@ services:
     # this command is not necessary when deploying OPAL for real, it is simply a trick for dev environments
     # to make sure that opal-server is already up before starting the client.
     command: sh -c "exec ./wait-for.sh opal.server:7002 --timeout=20 -- ./start.sh"
-  jaeger:
-    image: "jaegertracing/all-in-one:latest"
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    hostname: tempo
+    volumes:
+      - ./docker/tempo/tempo.yaml:/etc/tempo.yaml
+      - trace_volume:/tmp/tempo
     ports:
-      - "16686:16686"
-      - "14268"
-      - "14250"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      - "3200"   # tempo
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
     networks:
       fixed_compose_network:
   otel_collector:
@@ -205,51 +208,25 @@ services:
     networks:
       fixed_compose_network:
   grafana:
-    image: grafana/grafana:latest
+    build:
+      context: .
+      dockerfile: ./docker/grafana/Dockerfile
     environment:
       - "GF_AUTH_DISABLE_LOGIN_FORM=true"
       - "GF_AUTH_ANONYMOUS_ENABLED=true"
       - "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin"
       - "GF_SERVER_HTTP_PORT=9100"
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-        apiVersion: 1
-        datasources:
-          - name: Loki
-            type: loki
-            access: proxy
-            url: http://loki:3100
-          - name: Prometheus
-            type: prometheus
-            access: proxy
-            url: http://prometheus:9090
-            jsonData:
-              httpMethod: POST
-              manageAlerts: true
-              prometheusType: Prometheus
-              prometheusVersion: 2.44.0
-              cacheLevel: 'High'
-              disableRecordingRules: false
-              incrementalQueryOverlapWindow: 10m
-          - name: Jaeger
-            type: jaeger
-            access: proxy
-            url: http://jaeger:16686
-        EOF
-        /run.sh
     ports:
       - "9100:9100"
     depends_on:
       - loki
+      - tempo
     networks:
       fixed_compose_network:
 volumes:
   opa_backup:
   data_volume:
+  trace_volume:
 
 networks:
   fixed_compose_network:

@@ -38,8 +38,9 @@ exporters:
   logging:
   prometheus:
     endpoint: 0.0.0.0:4319
-  jaeger:
-    endpoint: jaeger:14250
+  otlp:
+    endpoint:
+      tempo:4317
     tls:
       insecure: true
   loki:
@@ -53,7 +54,7 @@ service:
     traces:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging, jaeger ]
+      exporters: [ logging, otlp ]
     logs:
       receivers: [ otlp ]
       processors: [ batch ]

@@ -1,3 +1,13 @@
+application_log_config:
+  log_format:
+    json_format:
+      Timestamp: "%Y-%m-%dT%T.%F"
+      ThreadId: "%t"
+      SourceLine: "%s:%#"
+      Level: "%l"
+      LoggerName: "%n"
+      Message: "%j"
+      LogType: "application_log"
 admin:
   address:
     socket_address:
@@ -7,6 +17,14 @@ admin:
     - name: envoy.access_loggers.stdout
       typed_config:
         "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+        log_format:
+          json_format:
+            Timestamp: "%START_TIME(%Y-%m-%dT%T.%F)%"
+            Method: "%REQ(:METHOD)%"
+            Path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+            StatusCode: "%RESPONSE_CODE%"
+            Duration: "%DURATION%"
+            LogType: "admin_access_log"
 static_resources:
   listeners:
     - name: listener_0
@@ -44,9 +62,60 @@ static_resources:
                           route:
                             cluster: api_cluster
                 access_log:
-                  - name: envoy.access_loggers.stdout
+                  - name: access_log
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.open_telemetry.v3.OpenTelemetryAccessLogConfig
+                      common_config:
+                        log_name: "front-envoy-access-log"
+                        grpc_service:
+                          envoy_grpc:
+                            cluster_name: opentelemetry_collector
+                          timeout: 0.25s
+                        transport_api_version: V3
+                      attributes:
+                        values:
+                          - key: "x-request-id"
+                            value:
+                              string_value: "%REQ(X-REQUEST-ID)%"
+                          - key: "method"
+                            value:
+                              string_value: "%REQ(:METHOD)%"
+                          - key: "x-envoy-original-path"
+                            value:
+                              string_value: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                          - key: "authority"
+                            value:
+                              string_value: "%REQ(:AUTHORITY)%"
+                          - key: "protocol"
+                            value:
+                              string_value: "%PROTOCOL%"
+                          - key: "response_code"
+                            value:
+                              string_value: "%RESPONSE_CODE%"
+                          - key: "response_code_details"
+                            value:
+                              string_value: "%RESPONSE_CODE_DETAILS%"
+                          - key: "upstream_host"
+                            value:
+                              string_value: "%UPSTREAM_HOST%"
+                          - key: "duration"
+                            value:
+                              string_value: "%DURATION%"
+                          - key: "upstream_local_address"
+                            value:
+                              string_value: "%UPSTREAM_LOCAL_ADDRESS%"
+                          - key: "upstream_remote_address"
+                            value:
+                              string_value: "%UPSTREAM_REMOTE_ADDRESS%"
+                          - key: "upstream_transport_failure_reason"
+                            value:
+                              string_value: "%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                          - key: "downstream_transport_failure_reason"
+                            value:
+                              string_value: "%DOWNSTREAM_TRANSPORT_FAILURE_REASON%"
+                          - key: "LogType"
+                            value:
+                              string_value: "listener_access_log"
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:

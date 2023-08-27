@@ -95,7 +95,7 @@ class MessageController(
             "call opa success",
             Attributes.of(
                 AttributeKey.stringKey("data count"),
-                response.result.toString()
+                response.result.toString(),
             )
         )
     }
