@@ -10,11 +10,10 @@ allow {
     some id
     input.parsed_path = ["messages", id]
 
-    print("id = ", id)
-    print("data.custom_info = ", data.custom_info)
-
     some idx
     data.custom_info[idx].id == id
+    trace_when_condition_fail(data.custom_info[idx].flag)
+
     data.custom_info[idx].flag == true
 }
 
@@ -23,4 +22,9 @@ allow {
 
     some id
     input.parsed_path = ["messages", id]
+}
+
+trace_when_condition_fail(condition) {
+    condition != true
+    trace("fail")
 }

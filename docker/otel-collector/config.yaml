@@ -35,7 +35,8 @@ receivers:
             - targets: [ opal.server.proxy:9903 ]
 
 exporters:
-  logging:
+  debug:
+    verbosity: detailed
   prometheus:
     endpoint: 0.0.0.0:4319
   otlp:
@@ -48,19 +49,42 @@ exporters:
 
 processors:
   batch:
-
+  transform:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          # common: resource
+          - set(attributes["service"], ExtractPatterns(body["container_name"], "^/base-(?P<name>.+?)-1$")) where body["container_name"] != nil
+          - set(attributes["container_id"], body["container_id"]) where body["container_id"] != nil
+          # opa
+          - set(attributes["decision_id"], body["decision-id"]) where body["decision-id"] != nil
+          - set(severity_text, body["level"]) where body["level"] != nil
+          - set(trace_id.string, body["trace_id"]) where body["trace_id"] != nil
+          - set(span_id.string, body["span_id"]) where body["span_id"] != nil
+          # opal
+          - merge_maps(attributes, ExtractPatterns(body["log"], "^(?P<time>.+?)\\s+\\|\\s+(?P<process>\\d+)\\s+\\|\\s+(?P<name>.+?)\\s+\\|\\s+(?P<level>\\w+)\\s+\\|\\s+(?P<message>.*)$"), "upsert") where IsMatch(body["container_name"], "/base-opal_(?:client|server)-1")
+          - set(severity_text, attributes["level"]) where attributes["level"] != nil
+          - set(cache["opal_update_policy_msg"], ExtractPatterns(attributes["message"], "^.+TraceId:(?P<trace_id>\\w+),.+$")) where IsMatch(attributes["message"], ".+TraceId:.+")
+          - set(trace_id.string, cache["opal_update_policy_msg"]["trace_id"]) where cache["opal_update_policy_msg"] != nil
+          - merge_maps(attributes, ExtractPatterns(body["msg"], "^(?P<policy_path>.+\\.rego):(?P<line>\\d+):\\s+(?P<msg>.+?)$"), "upsert") where body["container_name"] == "/base-opa-1" and body["msg"] != nil
+  groupbyattrs:
+    keys:
+      - service
+      - container_id
+      - decision_id
 service:
   pipelines:
     traces:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging, otlp ]
+      exporters: [ otlp ]
     logs:
       receivers: [ otlp ]
-      processors: [ batch ]
-      exporters: [ logging, loki ]
+      processors: [ batch, transform, groupbyattrs ]
+      exporters: [ debug, loki ]
     metrics:
       receivers: [ otlp, prometheus ]
       processors: [ batch ]
-      exporters: [ logging, prometheus ]
+      exporters: [ prometheus ]
   extensions: [ zpages, health_check ]

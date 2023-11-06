@@ -12,7 +12,7 @@ class MessageDomainService(
     fun register(id: String, body: String) {
         val entity = MessageEntity(id = id, body = body)
         messageRepository.save(entity)
-        val dataEntity = DataEntity(id = id, flag = true)
+        val dataEntity = DataEntity(id = id, flag = id.toInt() % 2 == 0)
         dataRepository.save(dataEntity)
     }
 }

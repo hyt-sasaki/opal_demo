@@ -30,6 +30,8 @@ services:
       - "3000:3000"
       - "9901:9901"
     hostname: front.envoy
+    environment:
+      - OTEL_RESOURCE_ATTRIBUTES=""
     networks:
       fixed_compose_network:
     logging:
@@ -103,6 +105,7 @@ services:
       - UVICORN_NUM_WORKERS=1
       - OPAL_DATA_CONFIG_SOURCES={"config":{"entries":[{"url":"http://auth.data.envoy:3001/auth/data","topics":["policy_data"],"dst_path":"/custom_info", "periodic_update_interval":3000}]}}
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
+      - OPAL_LOG_COLORIZE=false
       - OPAL_REPO_WATCHER_ENABLED=false
       - OPAL_LOG_LEVEL=INFO
     hostname: opal.server
@@ -128,6 +131,7 @@ services:
       - OPAL_SERVER_URL=http://opal.server:7002
       - OPAL_POLICY_STORE_URL=http://opa:8181
       - OPAL_LOG_FORMAT_INCLUDE_PID=true
+      - OPAL_LOG_COLORIZE=false
       - OPAL_LOG_LEVEL=INFO
       - OPAL_POLICY_UPDATER_ENABLED=false
     volumes:
@@ -184,6 +188,7 @@ services:
     restart: always
     ports:
       - "24224:24224"
+      - "24225:24225"
     networks:
       fixed_compose_network:
         ipv4_address: 10.254.249.101
